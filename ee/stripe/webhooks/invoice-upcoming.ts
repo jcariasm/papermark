@@ -5,12 +5,31 @@ import Stripe from "stripe";
 
 import { log } from "@/lib/utils";
 
+type InvoiceLineItemWithRenewalDetails = Stripe.InvoiceLineItem & {
+  price?: {
+    recurring?: {
+      interval?: string | null;
+      interval_count?: number | null;
+    } | null;
+  } | null;
+  period?: {
+    end?: number | null;
+  } | null;
+};
+
+type InvoiceWithRenewalDetails = Stripe.Invoice & {
+  lines: {
+    data: InvoiceLineItemWithRenewalDetails[];
+  };
+  period_end?: number | null;
+};
+
 export async function invoiceUpcoming(
   event: Stripe.Event,
   res: NextApiResponse,
   isOldAccount: boolean = false,
 ) {
-  const invoice = event.data.object as Stripe.Invoice;
+  const invoice = event.data.object as InvoiceWithRenewalDetails;
 
   // Only process invoices for yearly renewals
   const lineItems = invoice.lines.data;
@@ -53,7 +72,10 @@ export async function invoiceUpcoming(
   }
 
   // Calculate renewal date (period_end is when the invoice will be charged)
-  const renewalTimestamp = invoice.period_end;
+  const renewalTimestamp =
+    invoice.period_end ??
+    lineItems[0]?.period?.end ??
+    Math.floor(Date.now() / 1000);
   const renewalDate = new Date(renewalTimestamp * 1000);
   const formattedRenewalDate = renewalDate.toLocaleDateString("en-US", {
     month: "long",
