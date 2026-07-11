@@ -5,6 +5,10 @@ declare module "stripe" {
     interface Subscription {
       current_period_start: number;
       current_period_end: number;
+      discount?: {
+        coupon?: Coupon;
+        end?: number | null;
+      } | null;
     }
   }
 }
