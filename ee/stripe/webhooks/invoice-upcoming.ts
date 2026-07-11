@@ -17,7 +17,7 @@ type InvoiceLineItemWithRenewalDetails = Stripe.InvoiceLineItem & {
   } | null;
 };
 
-type InvoiceWithRenewalDetails = Stripe.Invoice & {
+type InvoiceWithRenewalDetails = Omit<Stripe.Invoice, "lines" | "period_end"> & {
   lines: {
     data: InvoiceLineItemWithRenewalDetails[];
   };
