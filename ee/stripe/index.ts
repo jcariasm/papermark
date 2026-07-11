@@ -1,11 +1,13 @@
 import Stripe from "stripe";
 
+const STRIPE_API_VERSION = "2024-06-20" as any;
+
 const stripeOld = new Stripe(
   process.env.STRIPE_SECRET_KEY_LIVE_OLD ??
     process.env.STRIPE_SECRET_KEY_OLD ??
     "",
   {
-    apiVersion: "2024-06-20",
+    apiVersion: STRIPE_API_VERSION,
     appInfo: {
       name: "Papermark.io",
       version: "0.1.0",
@@ -17,7 +19,7 @@ const stripeOld = new Stripe(
 const stripeNew = new Stripe(
   process.env.STRIPE_SECRET_KEY_LIVE ?? process.env.STRIPE_SECRET_KEY ?? "",
   {
-    apiVersion: "2024-06-20",
+    apiVersion: STRIPE_API_VERSION,
     appInfo: {
       name: "Papermark.io",
       version: "0.1.0",
