@@ -4,6 +4,13 @@ import hanko from "@/lib/hanko";
 import prisma from "@/lib/prisma";
 import { CustomUser } from "@/lib/types";
 
+function getHankoTenant() {
+  if (!hanko) {
+    throw new Error("Passkey service configuration missing");
+  }
+  return hanko;
+}
+
 export async function startServerPasskeyRegistration({
   session,
 }: {
@@ -18,7 +25,7 @@ export async function startServerPasskeyRegistration({
     select: { id: true, name: true },
   });
 
-  const createOptions = await hanko.registration.initialize({
+  const createOptions = await getHankoTenant().registration.initialize({
     userId: user!.id,
     username: user!.name || user!.id,
   });
@@ -37,7 +44,7 @@ export async function finishServerPasskeyRegistration({
 }) {
   if (!session) throw new Error("Not logged in");
 
-  await hanko.registration.finalize(credential);
+  await getHankoTenant().registration.finalize(credential);
 
   // const sessionUser = session.user as CustomUser;
 
