@@ -540,6 +540,16 @@ export function UpgradePlanModal({
                 };
 
                 const badge = getBadge();
+                const displayPlan = PLANS.find(
+                  (p) => p.name === displayPlanName,
+                );
+                const displayPlanPrice = displayPlan?.price[period];
+                const displayPlanAmountUsd =
+                  displayPlanPrice &&
+                  "amountUsd" in displayPlanPrice &&
+                  typeof displayPlanPrice.amountUsd === "number"
+                    ? displayPlanPrice.amountUsd
+                    : undefined;
 
                 return (
                   <div
@@ -568,16 +578,8 @@ export function UpgradePlanModal({
                     </div>
 
                     <PlanPrice
-                      amount={
-                        PLANS.find((p) => p.name === displayPlanName)?.price[
-                          period
-                        ].amount ?? 0
-                      }
-                      amountUsd={
-                        PLANS.find((p) => p.name === displayPlanName)?.price[
-                          period
-                        ].amountUsd
-                      }
+                      amount={displayPlanPrice?.amount ?? 0}
+                      amountUsd={displayPlanAmountUsd}
                       period={period}
                       currency={currency}
                     />
