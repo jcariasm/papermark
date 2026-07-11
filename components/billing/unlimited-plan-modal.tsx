@@ -63,6 +63,12 @@ export function UnlimitedPlanModal({
   const unlimitedPlan = PLANS.find(
     (p) => p.name === PlanEnum.DataRoomsUnlimited,
   )!;
+  const unlimitedPlanPrice = unlimitedPlan.price[period];
+  const unlimitedPlanAmountUsd =
+    "amountUsd" in unlimitedPlanPrice &&
+    typeof unlimitedPlanPrice.amountUsd === "number"
+      ? unlimitedPlanPrice.amountUsd
+      : undefined;
   const planFeatures = getPlanFeatures(PlanEnum.DataRoomsUnlimited, {
     period,
   });
@@ -139,8 +145,8 @@ export function UnlimitedPlanModal({
             </div>
 
             <PlanPrice
-              amount={unlimitedPlan.price[period].amount}
-              amountUsd={unlimitedPlan.price[period].amountUsd}
+              amount={unlimitedPlanPrice.amount}
+              amountUsd={unlimitedPlanAmountUsd}
               period={period}
               currency={currency}
             />
