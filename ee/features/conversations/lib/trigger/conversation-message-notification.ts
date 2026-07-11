@@ -180,6 +180,9 @@ export const sendConversationMessageNotificationTask = task({
   },
 });
 
+export const sendConversationMentionNotificationTask =
+  sendConversationMessageNotificationTask;
+
 // New task specifically for notifying team members when viewers write messages
 export const sendConversationTeamMemberNotificationTask = task({
   id: "send-conversation-team-member-notification",
