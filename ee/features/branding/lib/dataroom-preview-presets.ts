@@ -1,8 +1,11 @@
 export function getDataroomPreviewDataset() {
+  const previewDate = new Date("2026-01-01T00:00:00.000Z");
   const folders = [
     {
       id: "preview-financials",
       name: "Financials",
+      createdAt: previewDate,
+      updatedAt: previewDate,
       path: "Financials",
       parentId: null,
       dataroomId: "preview-room",
@@ -15,6 +18,8 @@ export function getDataroomPreviewDataset() {
     {
       id: "preview-legal",
       name: "Legal",
+      createdAt: previewDate,
+      updatedAt: previewDate,
       path: "Legal",
       parentId: null,
       dataroomId: "preview-room",
