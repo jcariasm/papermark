@@ -6,6 +6,7 @@ export const DATAROOM_VIEWER_LAYOUT_PRESETS = [
   "STRICT",
   "MODERN",
   "NOTION",
+  "CUSTOM",
 ] as const;
 export const DATAROOM_VIEWER_HEADER_STYLES = [
   "DEFAULT",
@@ -18,7 +19,10 @@ export type DataroomViewerLayoutPreset =
   (typeof DATAROOM_VIEWER_LAYOUT_PRESETS)[number];
 export type DataroomViewerHeaderStyle =
   (typeof DATAROOM_VIEWER_HEADER_STYLES)[number];
-export type DataroomLayoutCardId = DataroomViewerLayoutPreset;
+export type DataroomLayoutCardId = Exclude<
+  DataroomViewerLayoutPreset,
+  "CUSTOM"
+>;
 
 export const DataroomCardLayoutSchema = z.enum(DATAROOM_CARD_LAYOUTS);
 export const DataroomViewerLayoutPresetSchema = z.enum(
@@ -85,10 +89,37 @@ export function inferDataroomViewerLayoutPreset({
   hideFolderIconsInMain: boolean;
   viewerHeaderStyle: DataroomViewerHeaderStyle;
 }): DataroomViewerLayoutPreset {
-  if (viewerHeaderStyle === "NOTION") return "NOTION";
-  if (viewerHeaderStyle === "SPLIT") return "MODERN";
-  if (cardLayout === "COMPACT" && !showFolderTree && hideFolderIconsInMain) {
+  if (
+    cardLayout === "LIST" &&
+    showFolderTree &&
+    viewerHeaderStyle === "DEFAULT" &&
+    !hideFolderIconsInMain
+  ) {
+    return "STANDARD";
+  }
+  if (
+    cardLayout === "COMPACT" &&
+    !showFolderTree &&
+    viewerHeaderStyle === "DEFAULT" &&
+    hideFolderIconsInMain
+  ) {
     return "STRICT";
   }
-  return "STANDARD";
+  if (
+    cardLayout === "COMPACT" &&
+    !showFolderTree &&
+    viewerHeaderStyle === "SPLIT" &&
+    hideFolderIconsInMain
+  ) {
+    return "MODERN";
+  }
+  if (
+    cardLayout === "GRID" &&
+    !showFolderTree &&
+    viewerHeaderStyle === "NOTION" &&
+    !hideFolderIconsInMain
+  ) {
+    return "NOTION";
+  }
+  return "CUSTOM";
 }

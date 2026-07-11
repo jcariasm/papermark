@@ -2,7 +2,10 @@ import { Check } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import type { DataroomLayoutCardId } from "../lib/dataroom-viewer-layout";
+import type {
+  DataroomLayoutCardId,
+  DataroomViewerLayoutPreset,
+} from "../lib/dataroom-viewer-layout";
 
 const PRESETS: {
   id: DataroomLayoutCardId;
@@ -35,7 +38,7 @@ export function DataroomLayoutPresetCards({
   selectedPreset,
   onSelect,
 }: {
-  selectedPreset: DataroomLayoutCardId;
+  selectedPreset: DataroomViewerLayoutPreset;
   onSelect: (id: DataroomLayoutCardId) => void;
 }) {
   return (
