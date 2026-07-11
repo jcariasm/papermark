@@ -47,6 +47,7 @@ function previewDocument(
   folderName: string | null,
   hierarchicalIndex: string,
 ) {
+  const previewDate = new Date("2026-01-01T00:00:00.000Z");
   return {
     id,
     name,
@@ -61,6 +62,8 @@ function previewDocument(
         versionNumber: 1,
         type: "pdf",
         hasPages: true,
+        isVertical: true,
+        updatedAt: previewDate,
         file: null,
       },
     ],
