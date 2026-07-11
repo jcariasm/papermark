@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 
 import { SlackClient } from "./client";
-import { getSlackEnv } from "./env";
+import { getSlackEnv, isSlackEnvConfigured } from "./env";
 import { createSlackMessage } from "./templates";
 import { SlackEventData, SlackIntegrationServer } from "./types";
 
@@ -38,6 +38,10 @@ export class SlackEventManager {
 
   async processEvent(eventData: SlackEventData): Promise<void> {
     try {
+      if (!isSlackEnvConfigured()) {
+        return;
+      }
+
       const env = getSlackEnv();
 
       // Fetch integration and team's ignored domains in parallel

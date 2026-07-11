@@ -28,3 +28,6 @@ export const getSlackEnv = () => {
 
   return env;
 };
+
+export const isSlackEnvConfigured = () =>
+  envSchema.safeParse(process.env).success;
