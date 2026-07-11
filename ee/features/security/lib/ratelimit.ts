@@ -23,6 +23,24 @@ export const rateLimiters = {
     enableProtection: true,
     analytics: true,
   }),
+
+  // 5 domain verification attempts per hour per domain
+  domainVerification: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, "1 h"),
+    prefix: "rl:domain-verification",
+    enableProtection: true,
+    analytics: true,
+  }),
+
+  // 5 bulk link imports per hour per team
+  bulkLinkImport: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, "1 h"),
+    prefix: "rl:bulk-link-import",
+    enableProtection: true,
+    analytics: true,
+  }),
 };
 
 /**
