@@ -19,7 +19,18 @@ function isAnalyticsPath(path: string) {
   return pattern.test(path);
 }
 
+function normalizeHost(host?: string | null) {
+  return host?.split(":")[0]?.toLowerCase().trim();
+}
+
 function isCustomDomain(host: string) {
+  const requestHostname = normalizeHost(host);
+  const appHost = normalizeHost(process.env.NEXT_PUBLIC_APP_BASE_HOST);
+
+  if (appHost && requestHostname === appHost) {
+    return false;
+  }
+
   return (
     (process.env.NODE_ENV === "development" &&
       (host?.includes(".local") || host?.includes("papermark.dev"))) ||
@@ -61,7 +72,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // `localhost:3000` in dev), so strip it before comparing to the env var
   // — which is set to a bare hostname.
   const apiHost = process.env.NEXT_PUBLIC_API_BASE_HOST?.toLowerCase().trim();
-  const requestHostname = host?.split(":")[0]?.toLowerCase().trim();
+  const requestHostname = normalizeHost(host);
   if (apiHost && requestHostname === apiHost) {
     if (path === "/v1" || path.startsWith("/v1/") || path === "/openapi.json") {
       return NextResponse.next();
@@ -77,7 +88,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   // Handle incoming webhooks
-  if (isWebhookPath(host)) {
+  if (isWebhookPath(host, path)) {
     return IncomingWebhookMiddleware(req);
   }
 

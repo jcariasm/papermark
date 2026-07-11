@@ -17,12 +17,20 @@ export default async function IncomingWebhookMiddleware(req: NextRequest) {
   return NextResponse.rewrite(url, { status: 404 });
 }
 
-export function isWebhookPath(host: string | null) {
+function normalizeHost(host?: string | null) {
+  return host?.split(":")[0]?.toLowerCase().trim();
+}
+
+export function isWebhookPath(host: string | null, path = "") {
   if (!process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST) {
     return false;
   }
 
-  if (host === process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST) {
+  if (
+    path.startsWith("/services/") &&
+    normalizeHost(host) ===
+      normalizeHost(process.env.NEXT_PUBLIC_WEBHOOK_BASE_HOST)
+  ) {
     return true;
   }
 
