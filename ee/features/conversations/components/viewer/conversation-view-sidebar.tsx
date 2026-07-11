@@ -56,6 +56,7 @@ export type ConversationSidebarProps = {
   linkId: string;
   viewId: string;
   dataroomId?: string;
+  dataroomName?: string;
   documentId?: string;
   pageNumber?: number;
   viewerId?: string;
