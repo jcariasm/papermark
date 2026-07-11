@@ -1341,7 +1341,11 @@ export default function DataroomBrandPage() {
                 <div className="flex flex-col gap-6">
                   <VisitorLanguageCard
                     defaultLanguage={defaultLanguage}
-                    onDefaultLanguageChange={setDefaultLanguage}
+                    onDefaultLanguageChange={(value) =>
+                      setDefaultLanguage(
+                        asSupportedLocale(value) ?? DEFAULT_LOCALE,
+                      )
+                    }
                     hasAccess={hasVisitorLanguageAccess}
                   />
                 </div>
