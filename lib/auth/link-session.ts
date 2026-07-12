@@ -11,9 +11,10 @@ import {
   collectFingerprintHeaders,
   generateSessionFingerprint,
 } from "@/lib/auth/dataroom-auth";
-import { redis } from "@/lib/redis";
+import { isRedisConfigured, redis } from "@/lib/redis";
 
 const COOKIE_EXPIRATION_TIME = 23 * 60 * 60 * 1000; // 23 hours
+const SIGNED_SESSION_PREFIX = "signed";
 
 export { getLinkSessionCookieName } from "@/lib/auth/link-session-cookie";
 import { getLinkSessionCookieName } from "@/lib/auth/link-session-cookie";
@@ -38,6 +39,55 @@ export const LinkSessionSchema = z.object({
 });
 
 export type LinkSession = z.infer<typeof LinkSessionSchema>;
+
+function getSessionSigningSecret(): string {
+  const secret =
+    process.env.NEXTAUTH_SECRET || process.env.NEXT_PRIVATE_VERIFICATION_SECRET;
+
+  if (!secret) {
+    throw new Error("Missing session signing secret");
+  }
+
+  return secret;
+}
+
+function signPayload(payload: string): string {
+  return crypto
+    .createHmac("sha256", getSessionSigningSecret())
+    .update(payload)
+    .digest("base64url");
+}
+
+function createSignedSessionToken(sessionData: LinkSession): string {
+  const payload = Buffer.from(JSON.stringify(sessionData)).toString(
+    "base64url",
+  );
+  return `${SIGNED_SESSION_PREFIX}.${payload}.${signPayload(payload)}`;
+}
+
+function parseSignedSessionToken(sessionToken: string): LinkSession | null {
+  const [prefix, payload, signature] = sessionToken.split(".");
+  if (prefix !== SIGNED_SESSION_PREFIX || !payload || !signature) {
+    return null;
+  }
+
+  const expectedSignature = signPayload(payload);
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  if (
+    signatureBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)
+  ) {
+    return null;
+  }
+
+  try {
+    const raw = Buffer.from(payload, "base64url").toString("utf8");
+    return LinkSessionSchema.parse(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
 
 function getFingerprintFromPagesRequest(req: NextApiRequest): string {
   const header = (name: string) => {
@@ -87,6 +137,10 @@ export async function createLinkSession(
 
   LinkSessionSchema.parse(sessionData);
 
+  if (!isRedisConfigured) {
+    return { token: createSignedSessionToken(sessionData), expiresAt };
+  }
+
   await redis.set(`link_session:${sessionToken}`, JSON.stringify(sessionData), {
     pxat: expiresAt,
   });
@@ -110,6 +164,23 @@ async function verifyLinkSessionToken(
   userAgent: string,
 ): Promise<LinkSession | null> {
   if (!sessionToken) return null;
+
+  if (!isRedisConfigured) {
+    const sessionData = parseSignedSessionToken(sessionToken);
+    if (!sessionData) return null;
+
+    if (
+      sessionData.expiresAt < Date.now() ||
+      sessionData.linkId !== linkId ||
+      (sessionData.fingerprint
+        ? fingerprint !== sessionData.fingerprint
+        : userAgent !== sessionData.userAgent)
+    ) {
+      return null;
+    }
+
+    return sessionData;
+  }
 
   const session = await redis.get(`link_session:${sessionToken}`);
 
@@ -211,6 +282,8 @@ async function deleteLinkSession(
   sessionToken: string,
   viewerId?: string,
 ): Promise<void> {
+  if (!isRedisConfigured) return;
+
   await redis.del(`link_session:${sessionToken}`);
   if (viewerId) {
     await redis.srem(`viewer_sessions:${viewerId}`, sessionToken);
@@ -219,6 +292,8 @@ async function deleteLinkSession(
 
 export async function revokeLinkSession(linkId: string): Promise<void> {
   const sessionToken = cookies().get(getLinkSessionCookieName(linkId))?.value;
+  if (!isRedisConfigured) return;
+
   if (sessionToken) {
     const session = await redis.get(`link_session:${sessionToken}`);
     if (session) {
