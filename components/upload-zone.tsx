@@ -21,6 +21,7 @@ import {
   MULTIPART_SIZE_THRESHOLD,
   multipartUpload,
 } from "@/lib/files/multipart-upload";
+import { putFile } from "@/lib/files/put-file";
 import { resumableUpload } from "@/lib/files/tus-upload";
 import {
   BulkFolderRequestItem,
@@ -867,11 +868,10 @@ export default function UploadZone({
             }
           }
 
-          // Files above the multipart threshold bypass the TUS Vercel
-          // function and PUT directly to S3 using pre-signed part URLs. TUS
-          // is still preferred for smaller files: each chunk is bounded by
-          // the function's `maxDuration`, but TUS's resumable behavior is
-          // valuable on flaky networks for the medium-file long tail.
+          // Vercel Blob uploads use the direct browser upload flow. S3 keeps
+          // multipart for large files and TUS for the medium-file long tail.
+          const useVercelBlob =
+            process.env.NEXT_PUBLIC_UPLOAD_TRANSPORT === "vercel";
           const useMultipart =
             process.env.NEXT_PUBLIC_UPLOAD_TRANSPORT === "s3" &&
             file.size > MULTIPART_SIZE_THRESHOLD;
@@ -880,6 +880,8 @@ export default function UploadZone({
           let storageFileName: string;
           let storageFileType: string;
           let storageNumPages: number;
+          let storageType = DocumentStorageType.S3_PATH;
+          let storageFileSize = file.size;
 
           if (useMultipart) {
             const result = await multipartUpload({
@@ -896,6 +898,24 @@ export default function UploadZone({
             storageFileName = result.fileName;
             storageFileType = result.fileType;
             storageNumPages = result.numPages;
+          } else if (useVercelBlob) {
+            const result = await putFile({
+              file,
+              teamId: teamInfo?.currentTeam?.id as string,
+            });
+
+            if (!result.data || !result.type) {
+              throw new Error("Failed to upload file to Vercel Blob");
+            }
+
+            storageKey = result.data;
+            storageFileName = file.name;
+            storageFileType = file.type;
+            storageNumPages = result.numPages ?? numPages;
+            storageType = result.type;
+            storageFileSize = result.fileSize ?? file.size;
+            fileBytesUploaded.set(file, file.size);
+            emitUpdate();
           } else {
             const { complete } = await resumableUpload({
               file,
@@ -979,9 +999,9 @@ export default function UploadZone({
             key: storageKey,
             supportedFileType: supportedFileType,
             name: file.name,
-            storageType: DocumentStorageType.S3_PATH,
+            storageType,
             contentType: contentType,
-            fileSize: file.size,
+            fileSize: storageFileSize,
           };
 
           const fileUploadPathName = file?.whereToUploadPath;
