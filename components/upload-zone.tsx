@@ -880,7 +880,7 @@ export default function UploadZone({
           let storageFileName: string;
           let storageFileType: string;
           let storageNumPages: number;
-          let storageType = DocumentStorageType.S3_PATH;
+          let storageType: DocumentStorageType = DocumentStorageType.S3_PATH;
           let storageFileSize = file.size;
 
           if (useMultipart) {
