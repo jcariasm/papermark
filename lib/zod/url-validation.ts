@@ -63,6 +63,45 @@ export const validateUrlSecurity = (url: string): boolean => {
   return validatePathSecurity(url) && validateUrlSSRFProtection(url);
 };
 
+const normalizeHostname = (hostOrUrl: string | undefined): string | null => {
+  if (!hostOrUrl) return null;
+
+  try {
+    const value = hostOrUrl.includes("://")
+      ? new URL(hostOrUrl).hostname
+      : hostOrUrl;
+
+    return value.toLowerCase().trim() || null;
+  } catch {
+    return null;
+  }
+};
+
+const getTrustedVercelBlobHosts = (): string[] => {
+  return [
+    process.env.NEXT_PRIVATE_UPLOAD_DISTRIBUTION_HOST,
+    process.env.NEXT_PRIVATE_UPLOAD_DISTRIBUTION_HOST_US,
+    process.env.NEXT_PRIVATE_ADVANCED_UPLOAD_DISTRIBUTION_HOST,
+    process.env.NEXT_PRIVATE_ADVANCED_UPLOAD_DISTRIBUTION_HOST_US,
+    process.env.VERCEL_BLOB_HOST,
+  ].flatMap((host) => {
+    const normalized = normalizeHostname(host);
+    return normalized ? [normalized] : [];
+  });
+};
+
+const isTrustedVercelBlobUrl = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    if (urlObj.protocol !== "https:") return false;
+
+    const hostname = urlObj.hostname.toLowerCase();
+    return getTrustedVercelBlobHosts().includes(hostname);
+  } catch {
+    return false;
+  }
+};
+
 // Custom validator for file paths - either Notion URLs or S3 storage paths
 // Note: General URLs for link type are validated at the documentUploadSchema level
 const createFilePathValidator = () => {
@@ -85,10 +124,7 @@ const createFilePathValidator = () => {
             const isValidNotionDomain = validNotionDomains.includes(hostname);
 
             // Check for vercel blob storage
-            let isVercelBlob = false;
-            if (process.env.VERCEL_BLOB_HOST) {
-              isVercelBlob = hostname.startsWith(process.env.VERCEL_BLOB_HOST);
-            }
+            const isVercelBlob = isTrustedVercelBlobUrl(path);
 
             // If it's not a standard Notion domain or Vercel blob, check if it's a custom Notion domain
             if (!isNotionSite && !isValidNotionDomain && !isVercelBlob) {
@@ -337,9 +373,13 @@ export const documentUploadSchema = z
         // S3_PATH should use file paths, not URLs
         return !data.url.startsWith("https://");
       } else if (data.storageType === "VERCEL_BLOB") {
-        // VERCEL_BLOB can use either Notion URLs or S3 paths (for migration)
+        // VERCEL_BLOB can use Blob URLs, Notion URLs, or S3 paths (for migration)
         if (data.url.startsWith("https://")) {
-          // Must be a Notion URL for VERCEL_BLOB
+          if (isTrustedVercelBlobUrl(data.url)) {
+            return true;
+          }
+
+          // Otherwise, it must be a Notion URL for VERCEL_BLOB
           try {
             const urlObj = new URL(data.url);
             const hostname = urlObj.hostname;
