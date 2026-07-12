@@ -1,11 +1,12 @@
 import Stripe from "stripe";
 
 const STRIPE_API_VERSION = "2024-06-20" as any;
+const MISSING_STRIPE_SECRET_KEY = "missing-stripe-secret-key";
 
 const stripeOld = new Stripe(
   process.env.STRIPE_SECRET_KEY_LIVE_OLD ??
     process.env.STRIPE_SECRET_KEY_OLD ??
-    "",
+    MISSING_STRIPE_SECRET_KEY,
   {
     apiVersion: STRIPE_API_VERSION,
     appInfo: {
@@ -17,7 +18,9 @@ const stripeOld = new Stripe(
 );
 
 const stripeNew = new Stripe(
-  process.env.STRIPE_SECRET_KEY_LIVE ?? process.env.STRIPE_SECRET_KEY ?? "",
+  process.env.STRIPE_SECRET_KEY_LIVE ??
+    process.env.STRIPE_SECRET_KEY ??
+    MISSING_STRIPE_SECRET_KEY,
   {
     apiVersion: STRIPE_API_VERSION,
     appInfo: {
