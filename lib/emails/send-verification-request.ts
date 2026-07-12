@@ -1,7 +1,7 @@
 import { waitUntil } from "@vercel/functions";
 import { customAlphabet } from "nanoid";
 
-import { redis } from "@/lib/redis";
+import { isRedisConfigured, redis } from "@/lib/redis";
 import { sendEmail } from "@/lib/resend";
 
 import VerificationCodeEmail from "@/components/emails/verification-link";
@@ -30,29 +30,37 @@ export const sendVerificationRequestEmail = async (params: {
   url: string;
 }) => {
   const { url, email } = params;
+  let emailTemplate: ReturnType<typeof VerificationCodeEmail>;
 
-  // Generate verification code
-  const code = generateVerificationCode();
+  if (isRedisConfigured) {
+    // Generate verification code
+    const code = generateVerificationCode();
 
-  // Store the login data in Redis with 15-minute TTL
-  const loginCodeData: LoginCodeData = {
-    email,
-    code,
-    callbackUrl: url,
-    createdAt: Date.now(),
-  };
+    // Store the login data in Redis with 15-minute TTL
+    const loginCodeData: LoginCodeData = {
+      email,
+      code,
+      callbackUrl: url,
+      createdAt: Date.now(),
+    };
 
-  // Store with email:code as key for lookup (must complete before redirecting)
-  await redis.set(
-    `${LOGIN_CODE_EMAIL_PREFIX}${email.toLowerCase()}:${code}`,
-    JSON.stringify(loginCodeData),
-    { ex: TOKEN_EXPIRATION_SECONDS },
-  );
+    // Store with email:code as key for lookup (must complete before redirecting)
+    await redis.set(
+      `${LOGIN_CODE_EMAIL_PREFIX}${email.toLowerCase()}:${code}`,
+      JSON.stringify(loginCodeData),
+      { ex: TOKEN_EXPIRATION_SECONDS },
+    );
 
-  const emailTemplate = VerificationCodeEmail({
-    email,
-    code,
-  });
+    emailTemplate = VerificationCodeEmail({
+      email,
+      code,
+    });
+  } else {
+    emailTemplate = VerificationCodeEmail({
+      email,
+      url,
+    });
+  }
 
   // Use waitUntil to send email in background after response is sent
   // This keeps the serverless function alive until the email is sent

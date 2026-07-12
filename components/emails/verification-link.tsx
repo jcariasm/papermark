@@ -2,6 +2,7 @@ import React from "react";
 
 import {
   Body,
+  Button,
   Container,
   Head,
   Heading,
@@ -16,10 +17,15 @@ import {
 const VerificationCodeEmail = ({
   email = "user@example.com",
   code = "45PFSNUDYW",
+  url,
 }: {
   email?: string;
   code?: string;
+  url?: string;
 }) => {
+  const magicLinkUrl = url ?? "";
+  const isMagicLink = Boolean(magicLinkUrl);
+
   return (
     <Html>
       <Head />
@@ -32,26 +38,48 @@ const VerificationCodeEmail = ({
               </Text>
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-semibold text-black">
-              Your login code
+              {isMagicLink ? "Sign in to Papermark" : "Your login code"}
             </Heading>
             <Text className="text-sm leading-6 text-neutral-600">
-              A login code was requested for Papermark. Use this code to
-              continue in Papermark:
+              {isMagicLink
+                ? "A sign-in link was requested for Papermark. Use this link to continue in Papermark:"
+                : "A login code was requested for Papermark. Use this code to continue in Papermark:"}
             </Text>
-            <Section className="my-6">
-              <Text
-                className="m-0 rounded-lg bg-neutral-100 px-4 py-3 text-center text-xl font-semibold text-black"
-                style={{
-                  fontFamily:
-                    "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-                  letterSpacing: "0.15em",
-                }}
-              >
-                {code}
-              </Text>
-            </Section>
+            {isMagicLink ? (
+              <>
+                <Section className="my-6 text-center">
+                  <Button
+                    className="rounded bg-black px-5 py-3 text-sm font-semibold text-white"
+                    href={magicLinkUrl}
+                  >
+                    Sign in to Papermark
+                  </Button>
+                </Section>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Or copy and paste this link into your browser:{" "}
+                  <Link className="text-black underline" href={magicLinkUrl}>
+                    {magicLinkUrl}
+                  </Link>
+                </Text>
+              </>
+            ) : (
+              <Section className="my-6">
+                <Text
+                  className="m-0 rounded-lg bg-neutral-100 px-4 py-3 text-center text-xl font-semibold text-black"
+                  style={{
+                    fontFamily:
+                      "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+                    letterSpacing: "0.15em",
+                  }}
+                >
+                  {code}
+                </Text>
+              </Section>
+            )}
             <Text className="text-sm leading-6 text-neutral-600">
-              This code will expire in 15 minutes.
+              {isMagicLink
+                ? "This sign-in link will expire shortly."
+                : "This code will expire in 15 minutes."}
             </Text>
             <Text className="mt-4 text-sm leading-5 text-neutral-500">
               This email was intended for{" "}
