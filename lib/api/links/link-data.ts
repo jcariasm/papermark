@@ -11,6 +11,7 @@ import {
   ViewerGroupAccessControls,
 } from "@prisma/client";
 
+import { getAbargonDefaultBrand } from "@/lib/branding/abargon-default-brand";
 import { getFeatureFlags } from "@/lib/featureFlags";
 import { resolveDataroomIndexEnabledForViewer } from "@/lib/featureFlags/dataroom-index-viewer";
 import prisma from "@/lib/prisma";
@@ -351,46 +352,53 @@ export async function fetchDataroomLinkData({
       defaultLanguage: true,
     },
   });
+  const effectiveTeamBrand =
+    teamBrand ?? getAbargonDefaultBrand(linkData.dataroom.teamId);
 
   const brand = {
-    logo: dataroomBrand?.logo || teamBrand?.logo,
-    banner: dataroomBrand?.banner || teamBrand?.banner || null,
-    brandColor: dataroomBrand?.brandColor || teamBrand?.brandColor,
-    accentColor: dataroomBrand?.accentColor || teamBrand?.accentColor,
+    logo: dataroomBrand?.logo || effectiveTeamBrand?.logo,
+    banner: dataroomBrand?.banner || effectiveTeamBrand?.banner || null,
+    brandColor: dataroomBrand?.brandColor || effectiveTeamBrand?.brandColor,
+    accentColor: dataroomBrand?.accentColor || effectiveTeamBrand?.accentColor,
     accentButtonColor:
-      dataroomBrand?.accentButtonColor || teamBrand?.accentButtonColor || null,
+      dataroomBrand?.accentButtonColor ||
+      effectiveTeamBrand?.accentButtonColor ||
+      null,
     applyAccentColorToDataroomView:
       dataroomBrand?.applyAccentColorToDataroomView ??
-      teamBrand?.applyAccentColorToDataroomView ??
+      effectiveTeamBrand?.applyAccentColorToDataroomView ??
       false,
-    welcomeMessage: dataroomBrand?.welcomeMessage || teamBrand?.welcomeMessage,
+    welcomeMessage:
+      dataroomBrand?.welcomeMessage || effectiveTeamBrand?.welcomeMessage,
     // Layout fields cascade: dataroom override → team default → enum default.
     // Per-dataroom rows always win once present (matches accentColor pattern).
     cardLayout:
-      dataroomBrand?.cardLayout ?? (teamBrand as any)?.cardLayout ?? "LIST",
+      dataroomBrand?.cardLayout ??
+      (effectiveTeamBrand as any)?.cardLayout ??
+      "LIST",
     showFolderTree:
       dataroomBrand?.showFolderTree ??
-      (teamBrand as any)?.showFolderTree ??
+      (effectiveTeamBrand as any)?.showFolderTree ??
       true,
     viewerLayoutPreset:
       dataroomBrand?.viewerLayoutPreset ??
-      (teamBrand as any)?.viewerLayoutPreset ??
+      (effectiveTeamBrand as any)?.viewerLayoutPreset ??
       "STANDARD",
     viewerHeaderStyle:
       dataroomBrand?.viewerHeaderStyle ??
-      (teamBrand as any)?.viewerHeaderStyle ??
+      (effectiveTeamBrand as any)?.viewerHeaderStyle ??
       "DEFAULT",
     hideFolderIconsInMain:
       dataroomBrand?.hideFolderIconsInMain ??
-      (teamBrand as any)?.hideFolderIconsInMain ??
+      (effectiveTeamBrand as any)?.hideFolderIconsInMain ??
       false,
-    ctaLabel: dataroomBrand?.ctaLabel ?? teamBrand?.ctaLabel ?? null,
-    ctaUrl: dataroomBrand?.ctaUrl ?? teamBrand?.ctaUrl ?? null,
+    ctaLabel: dataroomBrand?.ctaLabel ?? effectiveTeamBrand?.ctaLabel ?? null,
+    ctaUrl: dataroomBrand?.ctaUrl ?? effectiveTeamBrand?.ctaUrl ?? null,
     // Viewer i18n: dataroom-level setting wins, else team-level, else en.
     // Read by `buildViewerI18nPageProps` to pick the locale + bundles.
     defaultLanguage:
       (dataroomBrand as any)?.defaultLanguage ??
-      (teamBrand as any)?.defaultLanguage ??
+      (effectiveTeamBrand as any)?.defaultLanguage ??
       "en",
   };
 
@@ -558,42 +566,49 @@ export async function fetchDataroomDocumentLinkData({
       defaultLanguage: true,
     },
   });
+  const effectiveTeamBrand =
+    teamBrand ?? getAbargonDefaultBrand(linkData.dataroom.teamId);
 
   const brand = {
-    logo: dataroomBrand?.logo || teamBrand?.logo,
-    banner: dataroomBrand?.banner || teamBrand?.banner || null,
-    brandColor: dataroomBrand?.brandColor || teamBrand?.brandColor,
-    accentColor: dataroomBrand?.accentColor || teamBrand?.accentColor,
+    logo: dataroomBrand?.logo || effectiveTeamBrand?.logo,
+    banner: dataroomBrand?.banner || effectiveTeamBrand?.banner || null,
+    brandColor: dataroomBrand?.brandColor || effectiveTeamBrand?.brandColor,
+    accentColor: dataroomBrand?.accentColor || effectiveTeamBrand?.accentColor,
     accentButtonColor:
-      dataroomBrand?.accentButtonColor || teamBrand?.accentButtonColor || null,
+      dataroomBrand?.accentButtonColor ||
+      effectiveTeamBrand?.accentButtonColor ||
+      null,
     applyAccentColorToDataroomView:
       dataroomBrand?.applyAccentColorToDataroomView ??
-      teamBrand?.applyAccentColorToDataroomView ??
+      effectiveTeamBrand?.applyAccentColorToDataroomView ??
       false,
-    welcomeMessage: dataroomBrand?.welcomeMessage || teamBrand?.welcomeMessage,
+    welcomeMessage:
+      dataroomBrand?.welcomeMessage || effectiveTeamBrand?.welcomeMessage,
     cardLayout:
-      dataroomBrand?.cardLayout ?? (teamBrand as any)?.cardLayout ?? "LIST",
+      dataroomBrand?.cardLayout ??
+      (effectiveTeamBrand as any)?.cardLayout ??
+      "LIST",
     showFolderTree:
       dataroomBrand?.showFolderTree ??
-      (teamBrand as any)?.showFolderTree ??
+      (effectiveTeamBrand as any)?.showFolderTree ??
       true,
     viewerLayoutPreset:
       dataroomBrand?.viewerLayoutPreset ??
-      (teamBrand as any)?.viewerLayoutPreset ??
+      (effectiveTeamBrand as any)?.viewerLayoutPreset ??
       "STANDARD",
     viewerHeaderStyle:
       dataroomBrand?.viewerHeaderStyle ??
-      (teamBrand as any)?.viewerHeaderStyle ??
+      (effectiveTeamBrand as any)?.viewerHeaderStyle ??
       "DEFAULT",
     hideFolderIconsInMain:
       dataroomBrand?.hideFolderIconsInMain ??
-      (teamBrand as any)?.hideFolderIconsInMain ??
+      (effectiveTeamBrand as any)?.hideFolderIconsInMain ??
       false,
-    ctaLabel: dataroomBrand?.ctaLabel ?? teamBrand?.ctaLabel ?? null,
-    ctaUrl: dataroomBrand?.ctaUrl ?? teamBrand?.ctaUrl ?? null,
+    ctaLabel: dataroomBrand?.ctaLabel ?? effectiveTeamBrand?.ctaLabel ?? null,
+    ctaUrl: dataroomBrand?.ctaUrl ?? effectiveTeamBrand?.ctaUrl ?? null,
     defaultLanguage:
       (dataroomBrand as any)?.defaultLanguage ??
-      (teamBrand as any)?.defaultLanguage ??
+      (effectiveTeamBrand as any)?.defaultLanguage ??
       "en",
   };
 
@@ -642,7 +657,7 @@ export async function fetchDocumentLinkData({
     throw new Error("Document not found");
   }
 
-  const brand = await prisma.brand.findFirst({
+  const teamBrand = await prisma.brand.findFirst({
     where: { teamId: linkData.document.teamId },
     select: {
       logo: true,
@@ -655,6 +670,7 @@ export async function fetchDocumentLinkData({
       defaultLanguage: true,
     },
   });
+  const brand = teamBrand ?? getAbargonDefaultBrand(linkData.document.teamId);
 
   return { linkData, brand };
 }
@@ -697,7 +713,7 @@ async function processLinkData(
           defaultLanguage: true,
         },
       });
-      brand = teamBrand;
+      brand = teamBrand ?? getAbargonDefaultBrand(link.teamId);
     }
 
     // For workflow links, return the link with minimal processing
@@ -896,6 +912,8 @@ async function processLinkData(
           })
         : Promise.resolve(null),
     ]);
+    const effectiveTeamBrandLp =
+      teamBrandLp ?? getAbargonDefaultBrand(link.teamId);
 
     let defaultTitle = "Shared link | Powered by Papermark";
     if (linkType === "DOCUMENT_LINK" && linkData?.document?.name) {
@@ -918,7 +936,7 @@ async function processLinkData(
         metaImage: link.metaImage,
         metaFavicon: link.metaFavicon,
       },
-      teamBrand: teamBrandLp,
+      teamBrand: effectiveTeamBrandLp,
       dataroomBrand: dataroomBrandLp,
       defaultTitle,
     });

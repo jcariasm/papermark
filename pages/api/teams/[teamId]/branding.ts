@@ -17,6 +17,7 @@ import {
   teamPlanAllowsLayoutCustomization,
 } from "@/lib/billing/team-plan-custom-messaging";
 import { validateRedirectUrl } from "@/lib/api/domains/validate-redirect-url";
+import { getAbargonDefaultBrand } from "@/lib/branding/abargon-default-brand";
 import { errorhandler } from "@/lib/errorHandler";
 import prisma from "@/lib/prisma";
 import { redis } from "@/lib/redis";
@@ -106,14 +107,17 @@ export default async function handle(
   }
 
   const { teamId } = req.query as { teamId: string };
+  let team: { id: string; name: string; users: { userId: string }[] } | null =
+    null;
 
   try {
-    const team = await prisma.team.findUnique({
+    team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
       select: {
         id: true,
+        name: true,
         users: { select: { userId: true } },
       },
     });
@@ -139,7 +143,7 @@ export default async function handle(
     });
 
     if (!brand) {
-      return res.status(200).json(null);
+      return res.status(200).json(getAbargonDefaultBrand(team));
     }
 
     return res.status(200).json(brand);
