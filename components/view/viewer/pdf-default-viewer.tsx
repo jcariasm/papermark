@@ -14,6 +14,17 @@ import { AwayPoster } from "./away-poster";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
+function getDefaultPdfWidth(viewportWidth: number) {
+  if (!viewportWidth) return 390;
+
+  const availableWidth = Math.max(viewportWidth - 32, 0);
+  if (viewportWidth < 768) {
+    return availableWidth;
+  }
+
+  return Math.min(760, Math.max(560, viewportWidth * 0.6), availableWidth);
+}
+
 export default function PDFViewer(props: any) {
   const { isPreview, linkId, documentId, viewId } = props.navData;
 
@@ -309,7 +320,7 @@ export default function PDFViewer(props: any) {
               renderTextLayer={false}
               onLoadSuccess={onPageLoadSuccess}
               onRenderError={() => setLoading(false)}
-              width={Math.max(pageWidth * 0.8, 390)}
+              width={getDefaultPdfWidth(pageWidth)}
             />
           </Document>
         </div>
