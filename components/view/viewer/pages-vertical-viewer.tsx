@@ -39,23 +39,22 @@ const calculateOptimalWidth = (
 ) => {
   if (!metadata) {
     // Fallback dimensions if metadata is null
-    return isMobile ? containerWidth : Math.min(800, containerWidth * 0.6);
+    return isMobile ? containerWidth : Math.min(680, containerWidth * 0.5);
   }
 
   const aspectRatio = metadata.width / metadata.height;
   const maxWidth = Math.min(1400, containerWidth); // 100% of container width, max 1400px
-  const minWidth = Math.min(
-    800,
-    isTablet ? containerWidth * 0.9 : containerWidth * 0.6,
-  ); // 60% of container width, min 600px
+  const portraitWidth = isTablet
+    ? Math.min(760, containerWidth * 0.9)
+    : Math.min(680, Math.max(560, containerWidth * 0.5));
 
   // For landscape documents (width > height), use more width
   if (aspectRatio > 1) {
     return maxWidth;
   }
 
-  // For portrait documents, use full width on mobile, min width on desktop
-  return isMobile ? containerWidth : minWidth;
+  // Keep portrait documents comfortable on desktop; users can still zoom in.
+  return isMobile ? containerWidth : Math.min(containerWidth, portraitWidth);
 };
 
 export default function PagesVerticalViewer({
