@@ -5,23 +5,23 @@ import { GTMComponent } from "@/components/gtm-component";
 import LoginClient from "./page-client";
 
 const data = {
-  description: "Login to Papermark",
-  title: "Login | Papermark",
+  description: "Login to Abar Vault",
+  title: "Login | Abar Vault",
   url: "/login",
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.papermark.com"),
+  metadataBase: new URL("https://vault.abargon.com"),
   title: data.title,
   description: data.description,
   openGraph: {
     title: data.title,
     description: data.description,
     url: data.url,
-    siteName: "Papermark",
+    siteName: "Abar Vault",
     images: [
       {
-        url: "/_static/meta-image.png",
+        url: "/_static/abargon-logo-transparent.png",
         width: 800,
         height: 600,
       },
@@ -33,8 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: data.title,
     description: data.description,
-    creator: "@papermarkio",
-    images: ["/_static/meta-image.png"],
+    images: ["/_static/abargon-logo-transparent.png"],
   },
 };
 

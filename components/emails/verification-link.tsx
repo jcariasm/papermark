@@ -34,16 +34,16 @@ const VerificationCodeEmail = ({
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
               <Text className="text-2xl font-bold tracking-tighter">
-                Papermark
+                Abar Vault
               </Text>
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-semibold text-black">
-              {isMagicLink ? "Sign in to Papermark" : "Your login code"}
+              {isMagicLink ? "Sign in to Abar Vault" : "Your login code"}
             </Heading>
             <Text className="text-sm leading-6 text-neutral-600">
               {isMagicLink
-                ? "A sign-in link was requested for Papermark. Use this link to continue in Papermark:"
-                : "A login code was requested for Papermark. Use this code to continue in Papermark:"}
+                ? "A sign-in link was requested for Abar Vault. Use this link to continue:"
+                : "A login code was requested for Abar Vault. Use this code to continue:"}
             </Text>
             {isMagicLink ? (
               <>
@@ -52,7 +52,7 @@ const VerificationCodeEmail = ({
                     className="rounded bg-black px-5 py-3 text-sm font-semibold text-white"
                     href={magicLinkUrl}
                   >
-                    Sign in to Papermark
+                    Sign in to Abar Vault
                   </Button>
                 </Section>
                 <Text className="text-sm leading-6 text-neutral-600">
@@ -89,11 +89,9 @@ const VerificationCodeEmail = ({
             <Hr className="my-6" />
             <Section className="text-gray-400">
               <Text className="text-xs text-neutral-500">
-                Papermark, Inc.
+                Abar Vault
                 <br />
-                1111B S Governors Ave #28117
-                <br />
-                Dover, DE 19904
+                Ábargon
               </Text>
             </Section>
           </Container>

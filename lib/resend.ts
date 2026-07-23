@@ -45,18 +45,19 @@ export const sendEmail = async ({
   const html = await render(react);
   const plainText = toPlainText(html);
 
+  const systemFromAddress =
+    process.env.RESEND_SYSTEM_FROM_EMAIL ?? "Abar Vault <vault@abargon.com>";
+
   const fromAddress =
     from ??
-    process.env.RESEND_FROM_EMAIL ??
-    (marketing
-      ? "Marc from Papermark <marc@updates.papermark.com>"
-      : system
-        ? "Papermark <system@papermark.com>"
-        : verify
-          ? "Papermark <system@verify.papermark.com>"
+    (system || verify
+      ? systemFromAddress
+      : (process.env.RESEND_FROM_EMAIL ??
+        (marketing
+          ? "Marc from Papermark <marc@updates.papermark.com>"
           : !!scheduledAt
             ? "Marc Seitz <marc@papermark.com>"
-            : "Marc from Papermark <marc@papermark.com>");
+            : "Marc from Papermark <marc@papermark.com>")));
 
   try {
     const { data, error } = await resend.emails.send({
